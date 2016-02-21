@@ -17,6 +17,8 @@ public class Feed {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Optional<LocalDate> ignoreEventsBefore = Optional.empty();
 
+    private boolean removeOrganiser;
+
 
     public String getName() {
         return name;
@@ -40,5 +42,13 @@ public class Feed {
 
     public void setIgnoreEventsBefore(Optional<LocalDate> ignoreEventsBefore) {
         this.ignoreEventsBefore = ignoreEventsBefore;
+    }
+
+    public boolean isRemoveOrganiser() {
+        return removeOrganiser;
+    }
+
+    public void setRemoveOrganiser(boolean removeOrganiser) {
+        this.removeOrganiser = removeOrganiser;
     }
 }
