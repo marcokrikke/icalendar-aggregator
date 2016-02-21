@@ -12,6 +12,7 @@ public class VEventListener extends ICalendarBaseListener {
 
     /* Config */
     private Optional<LocalDate> ignoreEventsBefore;
+    private boolean removeDescription;
     private boolean removeOrganiser;
     private boolean removeAttendees;
     private boolean removeLocations;
@@ -22,10 +23,12 @@ public class VEventListener extends ICalendarBaseListener {
     private boolean skipVevent;
 
 
-    public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore, boolean removeOrganiser,
-                          boolean removeAttendees, boolean removeLocations) {
+    public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore,
+                          boolean removeDescription, boolean removeOrganiser, boolean removeAttendees,
+                          boolean removeLocations) {
         this.resultBuilder = resultBuilder;
         this.ignoreEventsBefore = ignoreEventsBefore;
+        this.removeDescription = removeDescription;
         this.removeOrganiser = removeOrganiser;
         this.removeAttendees = removeAttendees;
         this.removeLocations = removeLocations;
@@ -99,8 +102,7 @@ public class VEventListener extends ICalendarBaseListener {
         // Skip events that occur before a specified date
         if (ignoreEventsBefore.isPresent() && parsingEvent && parsingDtStart) {
             try {
-                LocalDate dtStart =
-                        LocalDate.parse(ctx.getText(), DateTimeFormatter.ofPattern("yyyyMMdd"));
+                LocalDate dtStart = LocalDate.parse(ctx.getText(), DateTimeFormatter.ofPattern("yyyyMMdd"));
 
                 if (dtStart.isBefore(ignoreEventsBefore.get())) {
                     skipVevent = true;
@@ -142,7 +144,7 @@ public class VEventListener extends ICalendarBaseListener {
     public void enterDescription(ICalendarParser.DescriptionContext ctx) {
         super.enterDescription(ctx);
 
-        if (parsingEvent) {
+        if (parsingEvent && !removeDescription) {
             eventBuilder.append(ctx.getText());
         }
     }
