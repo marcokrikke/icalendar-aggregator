@@ -1,10 +1,21 @@
 package nl.marcokrikke.icalendaraggregator.config.feeds;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.Optional;
+
 public class Feed {
 
+    @NotNull
     private String name;
 
+    @NotNull
     private String url;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Optional<LocalDate> ignoreEventsBefore = Optional.empty();
 
 
     public String getName() {
@@ -21,5 +32,13 @@ public class Feed {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public Optional<LocalDate> getIgnoreEventsBefore() {
+        return ignoreEventsBefore;
+    }
+
+    public void setIgnoreEventsBefore(Optional<LocalDate> ignoreEventsBefore) {
+        this.ignoreEventsBefore = ignoreEventsBefore;
     }
 }

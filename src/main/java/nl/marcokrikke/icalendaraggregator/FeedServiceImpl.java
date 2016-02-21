@@ -88,7 +88,7 @@ public class FeedServiceImpl implements FeedService {
 
         // Custom listener for our parser. Adds content to a StringBuilder.
         StringBuilder vEvents = new StringBuilder();
-        VEventListener listener = new VEventListener(vEvents);
+        VEventListener listener = new VEventListener(vEvents, feed.getIgnoreEventsBefore());
 
         // Walk the tree and use the listener
         ParseTreeWalker.DEFAULT.walk(listener, tree);

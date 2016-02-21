@@ -1,32 +1,47 @@
 package nl.marcokrikke.icalendaraggregator.antlr;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Optional;
+
 public class VEventListener extends ICalendarBaseListener {
 
-    private StringBuilder stringBuilder;
+    private StringBuilder resultBuilder;
+    private StringBuilder eventBuilder = new StringBuilder();
 
+    /* Config */
+    private Optional<LocalDate> ignoreEventsBefore;
+
+    /* State */
     private boolean parsingEvent;
+    private boolean parsingDtStart;
+    private boolean skipVevent;
 
-    public VEventListener(StringBuilder stringBuilder) {
-        this.stringBuilder = stringBuilder;
+
+    public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore) {
+        this.resultBuilder = resultBuilder;
+        this.ignoreEventsBefore = ignoreEventsBefore;
     }
-
 
     @Override
     public void enterEventc(ICalendarParser.EventcContext ctx) {
         super.enterEventc(ctx);
 
         parsingEvent = true;
-
-        stringBuilder.append("BEGIN:VEVENT\r\n");
     }
 
     @Override
     public void exitEventc(ICalendarParser.EventcContext ctx) {
         super.exitEventc(ctx);
 
-        parsingEvent = false;
+        if (!skipVevent) {
+            resultBuilder.append("BEGIN:VEVENT\r\n").append(eventBuilder).append("END:VEVENT\r\n");
+        }
 
-        stringBuilder.append("END:VEVENT\r\n");
+        parsingEvent = false;
+        skipVevent = false;
+        eventBuilder = new StringBuilder();
     }
 
     @Override
@@ -34,8 +49,10 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterDtstart(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
+
+        parsingDtStart = true;
     }
 
     @Override
@@ -43,7 +60,47 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterDtend(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
+        }
+
+        parsingDtStart = false;
+    }
+
+    @Override
+    public void enterDate_time(ICalendarParser.Date_timeContext ctx) {
+        super.enterDate_time(ctx);
+
+        // Skip events that occur before a specified date
+        if (ignoreEventsBefore.isPresent() && parsingEvent && parsingDtStart) {
+            try {
+                LocalDate dtStart =
+                        LocalDate.parse(ctx.getText().substring(0, 8), DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+                if (dtStart.isBefore(ignoreEventsBefore.get())) {
+                    skipVevent = true;
+                }
+            } catch (DateTimeParseException e) {
+                skipVevent = true;
+            }
+        }
+    }
+
+    @Override
+    public void enterDate(ICalendarParser.DateContext ctx) {
+        super.enterDate(ctx);
+
+        // Skip events that occur before a specified date
+        if (ignoreEventsBefore.isPresent() && parsingEvent && parsingDtStart) {
+            try {
+                LocalDate dtStart =
+                        LocalDate.parse(ctx.getText(), DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+                if (dtStart.isBefore(ignoreEventsBefore.get())) {
+                    skipVevent = true;
+                }
+            } catch (DateTimeParseException e) {
+                skipVevent = true;
+            }
         }
     }
 
@@ -52,7 +109,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterDtstamp(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -61,7 +118,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterUid(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -70,7 +127,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterCreated(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -79,7 +136,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterDescription(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -88,7 +145,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterLast_mod(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -97,7 +154,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterLocation(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -106,7 +163,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterSeq(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -115,7 +172,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterStatus(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -124,7 +181,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterSummary(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -133,7 +190,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterTransp(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -142,7 +199,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterRecurid(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -151,7 +208,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterRrule(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -160,7 +217,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterOrganizer(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -169,7 +226,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterAttendee(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -178,7 +235,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterExdate(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -187,7 +244,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterClazz(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -196,7 +253,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterGeo(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -205,7 +262,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterPriority(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -214,7 +271,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterUrl(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -223,7 +280,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterDuration(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -232,7 +289,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterCategories(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -241,7 +298,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterComment(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -250,7 +307,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterContact(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -259,7 +316,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterRstatus(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -268,7 +325,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterRelated(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -277,7 +334,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterResources(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 
@@ -286,7 +343,7 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterRdate(ctx);
 
         if (parsingEvent) {
-            stringBuilder.append(ctx.getText());
+            eventBuilder.append(ctx.getText());
         }
     }
 }
