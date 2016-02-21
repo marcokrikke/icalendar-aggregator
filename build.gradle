@@ -1,0 +1,109 @@
+import java.text.SimpleDateFormat
+
+def getGitRevision = {
+    try {
+        def git = 'git rev-parse --short HEAD'.execute()
+        def status = git.waitFor()
+        assert status == 0, "${git.err.text}"
+        return git.text.trim()
+    }
+    catch (AssertionError a) {
+    }
+    catch (Exception e) {
+    }
+    'unknown'
+}
+
+def buildTime() {
+    def df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+    df.setTimeZone(TimeZone.getTimeZone("UTC"))
+
+    return df.format(new Date())
+}
+
+buildscript {
+    ext {
+        springBootVersion = '1.3.2.RELEASE'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+allprojects {
+    ext.appName = 'icalendar-aggregator'
+    ext.mainVersion = '1.0.0'
+    ext.gitRevision = getGitRevision()
+
+    version = ext.mainVersion + '.' + ext.gitRevision
+}
+
+repositories {
+    mavenCentral()
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/main/")
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Vendor': 'Marco Krikke',
+                'Provider': 'Gradle',
+                'Implementation-Title': 'iCalendar Aggregator',
+                'Implementation-Version': version
+        )
+    }
+
+    baseName = appName
+    version = mainVersion
+
+    sourceCompatibility = 1.8
+
+    archiveName "${baseName}.jar"
+}
+
+processResources {
+    filesMatching("**/application.properties") {
+        expand([
+                appName    : appName,
+                baseVersion: mainVersion,
+                gitRevision: gitRevision,
+                version    : version,
+                buildDate  : buildTime(),
+                builtBy    : System.getProperty("user.name")
+        ])
+    }
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-cache')
+    compile('org.springframework.boot:spring-boot-starter-web')
+
+    // Used to support the GuavaCacheManager
+    compile("org.springframework:spring-context-support")
+
+    // Google Guava
+    compile "com.google.guava:guava:19.0"
+
+    compile 'org.antlr:antlr4-runtime:4.5.2-1'
+
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.11'
+}
