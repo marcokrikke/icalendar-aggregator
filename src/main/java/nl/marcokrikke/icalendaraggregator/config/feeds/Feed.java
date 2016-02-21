@@ -19,6 +19,8 @@ public class Feed {
 
     private boolean removeOrganiser;
 
+    private boolean removeAttendees;
+
 
     public String getName() {
         return name;
@@ -50,5 +52,13 @@ public class Feed {
 
     public void setRemoveOrganiser(boolean removeOrganiser) {
         this.removeOrganiser = removeOrganiser;
+    }
+
+    public boolean isRemoveAttendees() {
+        return removeAttendees;
+    }
+
+    public void setRemoveAttendees(boolean removeAttendees) {
+        this.removeAttendees = removeAttendees;
     }
 }

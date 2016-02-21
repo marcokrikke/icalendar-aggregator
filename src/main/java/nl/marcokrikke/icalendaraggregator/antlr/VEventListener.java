@@ -13,6 +13,7 @@ public class VEventListener extends ICalendarBaseListener {
     /* Config */
     private Optional<LocalDate> ignoreEventsBefore;
     private boolean removeOrganiser;
+    private boolean removeAttendees;
 
     /* State */
     private boolean parsingEvent;
@@ -20,11 +21,12 @@ public class VEventListener extends ICalendarBaseListener {
     private boolean skipVevent;
 
 
-    public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore,
-                          boolean removeOrganiser) {
+    public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore, boolean removeOrganiser,
+                          boolean removeAttendees) {
         this.resultBuilder = resultBuilder;
         this.ignoreEventsBefore = ignoreEventsBefore;
         this.removeOrganiser = removeOrganiser;
+        this.removeAttendees = removeAttendees;
     }
 
     @Override
@@ -228,7 +230,7 @@ public class VEventListener extends ICalendarBaseListener {
     public void enterAttendee(ICalendarParser.AttendeeContext ctx) {
         super.enterAttendee(ctx);
 
-        if (parsingEvent) {
+        if (parsingEvent && !removeAttendees) {
             eventBuilder.append(ctx.getText());
         }
     }
