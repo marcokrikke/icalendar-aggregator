@@ -16,6 +16,8 @@ public class VEventListener extends ICalendarBaseListener {
     private boolean removeOrganiser;
     private boolean removeAttendees;
     private boolean removeLocations;
+    private boolean obfuscateSummary;
+    private String obfuscateSummaryMessage;
 
     /* State */
     private boolean parsingEvent;
@@ -25,13 +27,15 @@ public class VEventListener extends ICalendarBaseListener {
 
     public VEventListener(StringBuilder resultBuilder, Optional<LocalDate> ignoreEventsBefore,
                           boolean removeDescription, boolean removeOrganiser, boolean removeAttendees,
-                          boolean removeLocations) {
+                          boolean removeLocations, boolean obfuscateSummary, String obfuscateSummaryMessage) {
         this.resultBuilder = resultBuilder;
         this.ignoreEventsBefore = ignoreEventsBefore;
         this.removeDescription = removeDescription;
         this.removeOrganiser = removeOrganiser;
         this.removeAttendees = removeAttendees;
         this.removeLocations = removeLocations;
+        this.obfuscateSummary = obfuscateSummary;
+        this.obfuscateSummaryMessage = obfuscateSummaryMessage;
     }
 
     @Override
@@ -190,7 +194,11 @@ public class VEventListener extends ICalendarBaseListener {
         super.enterSummary(ctx);
 
         if (parsingEvent) {
-            eventBuilder.append(ctx.getText());
+            if (obfuscateSummary) {
+                eventBuilder.append("SUMMARY:").append(obfuscateSummaryMessage).append("\r\n");
+            } else {
+                eventBuilder.append(ctx.getText());
+            }
         }
     }
 

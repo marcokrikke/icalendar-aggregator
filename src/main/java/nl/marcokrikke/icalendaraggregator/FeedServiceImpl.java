@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class FeedServiceImpl implements FeedService {
 
     @Autowired
     private ResourceLoader resourceLoader;
+
+    @Value("${postprocessor.obfuscateMessage.summary}")
+    private String obfuscateSummaryMessage;
 
     @Override
     public String aggregateFeeds(List<Feed> feeds) {
@@ -89,7 +93,8 @@ public class FeedServiceImpl implements FeedService {
         // Custom listener for our parser. Adds content to a StringBuilder.
         StringBuilder vEvents = new StringBuilder();
         VEventListener listener = new VEventListener(vEvents, feed.getIgnoreEventsBefore(), feed.isRemoveDescription(),
-                feed.isRemoveOrganiser(), feed.isRemoveAttendees(), feed.isRemoveLocations());
+                feed.isRemoveOrganiser(), feed.isRemoveAttendees(), feed.isRemoveLocations(), feed.isObfuscateSummary(),
+                obfuscateSummaryMessage);
 
         // Walk the tree and use the listener
         ParseTreeWalker.DEFAULT.walk(listener, tree);

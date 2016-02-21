@@ -25,6 +25,8 @@ public class Feed {
 
     private boolean removeLocations;
 
+    private boolean obfuscateSummary;
+
 
     public String getName() {
         return name;
@@ -80,5 +82,13 @@ public class Feed {
 
     public void setRemoveLocations(boolean removeLocations) {
         this.removeLocations = removeLocations;
+    }
+
+    public boolean isObfuscateSummary() {
+        return obfuscateSummary;
+    }
+
+    public void setObfuscateSummary(boolean obfuscateSummary) {
+        this.obfuscateSummary = obfuscateSummary;
     }
 }
