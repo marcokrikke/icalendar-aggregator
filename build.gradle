@@ -58,6 +58,10 @@ idea {
     }
 }
 
+springBoot {
+    executable = true
+}
+
 jar {
     manifest {
         attributes(
